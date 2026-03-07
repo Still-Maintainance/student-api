@@ -15,7 +15,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in kilometers
 };
 
-// Validation helper
+// Validation helper 
 const validateSchoolInput = (name, address, latitude, longitude) => {
   const errors = [];
 
@@ -56,7 +56,7 @@ router.post('/addSchool', async (req, res) => {
         errors 
       });
     }
-
+    
     const connection = await pool.getConnection();
     const [result] = await connection.query(
       'INSERT INTO schools (name, address, latitude, longitude) VALUES (?, ?, ?, ?)',
@@ -84,7 +84,7 @@ router.post('/addSchool', async (req, res) => {
   }
 });
 
-// API 2: List Schools with distance calculation
+
 router.get('/listSchools', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -166,7 +166,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get school by ID
 router.get('/:id', async (req, res) => {
   try {
     const connection = await pool.getConnection();
