@@ -40,7 +40,8 @@ router.post('/', async (req, res) => {
       [name, email, phone]
     );
     connection.release();
-    res.status(201).json({ id: result.insertId, name, email, phone });
+    res.status(201).json({ id: result.insertId, name, email, phone, message: 'data added successfully' });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

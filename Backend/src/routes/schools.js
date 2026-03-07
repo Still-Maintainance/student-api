@@ -84,64 +84,86 @@ router.post('/addSchool', async (req, res) => {
   }
 });
 
-
 router.get('/listSchools', async (req, res) => {
   try {
-    const { latitude, longitude } = req.query;
+    // Accept both 'latitude'/'longitude' and 'lat'/'lon' parameter names
+    const lat = req.query.latitude || req.query.lat;
+    const lon = req.query.longitude || req.query.lon;
 
-    // Validate user location parameters
-    if (!latitude || !longitude) {
+    // Validate that coordinates are provided and valid
+    if (!lat || !lon) {
       return res.status(400).json({
         success: false,
-        message: 'latitude and longitude parameters are required'
+        message: 'Missing required query parameters: latitude (or lat) and longitude (or lon)'
       });
     }
 
-    const userLat = parseFloat(latitude);
-    const userLon = parseFloat(longitude);
+    const userLat = parseFloat(lat);
+    const userLon = parseFloat(lon);
 
-    if (isNaN(userLat) || userLat < -90 || userLat > 90) {
+    // Validate that parsed values are valid numbers
+    if (isNaN(userLat) || isNaN(userLon)) {
       return res.status(400).json({
         success: false,
-        message: 'Latitude must be a valid number between -90 and 90'
+        message: 'Latitude and longitude must be valid numbers'
       });
     }
 
-    if (isNaN(userLon) || userLon < -180 || userLon > 180) {
+    // Validate coordinate ranges
+    if (userLat < -90 || userLat > 90) {
       return res.status(400).json({
         success: false,
-        message: 'Longitude must be a valid number between -180 and 180'
+        message: 'Latitude must be between -90 and 90'
+      });
+    }
+
+    if (userLon < -180 || userLon > 180) {
+      return res.status(400).json({
+        success: false,
+        message: 'Longitude must be between -180 and 180'
       });
     }
 
     const connection = await pool.getConnection();
-    const [schools] = await connection.query('SELECT * FROM schools');
+
+    const [schools] = await connection.query(
+      "SELECT name, address, latitude, longitude FROM schools"
+    );
+
     connection.release();
 
-    // Calculate distance for each school and sort by distance
-    const schoolsWithDistance = schools.map(school => ({
-      ...school,
-      distance: calculateDistance(
-        userLat,
-        userLon,
-        school.latitude,
-        school.longitude
-      )
-    })).sort((a, b) => a.distance - b.distance);
+    const schoolsWithDistance = schools
+      .map((school) => {
+        const schoolLat = parseFloat(school.latitude);
+        const schoolLon = parseFloat(school.longitude);
+
+        const distance = calculateDistance(
+          userLat,
+          userLon,
+          schoolLat,
+          schoolLon
+        );
+
+        return {
+          name: school.name,
+          address: school.address,
+          latitude: schoolLat,
+          longitude: schoolLon,
+          distance
+        };
+      })
+      .sort((a, b) => a.distance - b.distance);
 
     res.status(200).json({
       success: true,
-      message: 'Schools retrieved successfully',
-      userLocation: {
-        latitude: userLat,
-        longitude: userLon
-      },
+      userLocation: { latitude: userLat, longitude: userLon },
       data: schoolsWithDistance
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching schools',
+      message: "Error fetching schools",
       error: error.message
     });
   }
