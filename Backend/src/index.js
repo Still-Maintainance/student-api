@@ -47,15 +47,14 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
 });
 
-app.get('/test-db', async (req, res) => {
+app.get('/api/test-db', async (req, res) => {
   try {
-    await db.query('SELECT 1');
-    res.send('DB connected!');
+    const [rows] = await pool.query('SELECT 1');
+    res.json({ success: true, rows });
   } catch (err) {
-    res.status(500).send(err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
-
 
 // Routes
 app.use("/api/students", studentRoutes);
