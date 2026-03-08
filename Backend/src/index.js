@@ -83,5 +83,3 @@ if (!process.env.VERCEL) {
 
 // Export for Vercel serverless
 module.exports = app;
-
-module.exports = app;
