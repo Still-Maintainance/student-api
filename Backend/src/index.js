@@ -61,22 +61,27 @@ app.use("/api/students", studentRoutes);
 app.use("/api/schools", schoolRoutes);
 
 
-// Start server after DB connection test
-async function startServer() {
-  try {
-    const connection = await pool.getConnection();
-    console.log("✓ Database connected successfully!");
-    connection.release();
+// Start server after DB connection test (only when not running on Vercel)
+if (!process.env.VERCEL) {
+  async function startServer() {
+    try {
+      const connection = await pool.getConnection();
+      console.log("✓ Database connected successfully!");
+      connection.release();
 
-    app.listen(PORT, () => {
-      console.log(`✓ Server running on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error("✗ Database connection failed:", error.message);
-    process.exit(1);
+      app.listen(PORT, () => {
+        console.log(`✓ Server running on http://localhost:${PORT}`);
+      });
+    } catch (error) {
+      console.error("✗ Database connection failed:", error.message);
+      process.exit(1);
+    }
   }
+
+  startServer();
 }
 
-startServer();
+// Export for Vercel serverless
+module.exports = app;
 
 module.exports = app;
