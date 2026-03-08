@@ -24,8 +24,7 @@ app.get("/", (req, res) => {
       health: "GET /api/health",
       schools: {
         getAll: "GET /api/schools",
-        listByDistance:
-          "GET /api/schools/listSchools?latitude=<lat>&longitude=<lon>",
+        listByDistance: "GET /api/schools/listSchools?latitude=<lat>&longitude=<lon>",
         getById: "GET /api/schools/:id",
         add: "POST /api/schools/addSchool",
         update: "PUT /api/schools/:id",
@@ -46,6 +45,15 @@ app.get("/", (req, res) => {
 // Health check
 app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
+});
+
+app.get('/test-db', async (req, res) => {
+  try {
+    await db.query('SELECT 1');
+    res.send('DB connected!');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 
